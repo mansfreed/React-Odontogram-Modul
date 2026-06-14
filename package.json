@@ -2,6 +2,7 @@
   "name": "react-odontogram-editor-modul",
   "private": true,
   "version": "1.4.2",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
