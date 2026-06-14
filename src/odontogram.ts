@@ -2,6 +2,8 @@ import { STATUS_EXTRAS } from "./status_extras";
 import { t, onI18nChange, getI18nLanguage } from "./i18n/useI18n";
 import { toLabel, type NumberingSystem } from "./utils/numbering";
 import { type OdontogramPlugin, getQuadrant, LAYER_Z } from "./plugin";
+import { buildFhirBundle } from "./fhir/toFhir";
+import type { FhirExportOptions } from "./fhir/types";
 import tooth11Url from "./assets/teeth-svgs/11.svg";
 import tooth13Url from "./assets/teeth-svgs/13.svg";
 import tooth14Url from "./assets/teeth-svgs/14.svg";
@@ -2204,13 +2206,13 @@ function hydrateState(raw: Any){
   return s;
 }
 
-function exportStatus(){
+function collectExportPayload(){
   const teeth = {};
   for(const toothNo of ALL_TEETH){
     const s = toothState.get(toothNo) ?? defaultState();
     teeth[toothNo] = serializeState(s);
   }
-  const payload = {
+  return {
     version: "1.3",
     globals: {
       wisdomVisible,
@@ -2221,16 +2223,33 @@ function exportStatus(){
     },
     teeth,
   };
+}
+
+function downloadJson(payload: Any, filenamePrefix: string){
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
   a.href = url;
-  a.download = `odontogram-status-${stamp}.json`;
+  a.download = `${filenamePrefix}-${stamp}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+function exportStatus(){
+  downloadJson(collectExportPayload(), "odontogram-status");
+}
+
+/**
+ * Export the current odontogram as an HL7 FHIR R4 collection Bundle (JSON).
+ * @param options - Optional subject reference (e.g. "Patient/123"); when
+ *   omitted a placeholder Patient is embedded.
+ */
+export function exportFhir(options?: FhirExportOptions){
+  const bundle = buildFhirBundle(collectExportPayload(), options);
+  downloadJson(bundle, "odontogram-fhir");
 }
 
 function importStatus(data: Any){
@@ -2985,10 +3004,14 @@ function wireControls(){
   });
 
   const exportBtn = $("#btnStatusExport") as HTMLButtonElement | null;
+  const fhirBtn = $("#btnStatusFhirExport") as HTMLButtonElement | null;
   const importBtn = $("#btnStatusImport") as HTMLButtonElement | null;
   const importInput = $("#statusImportInput") as HTMLInputElement | null;
   if(exportBtn){
     exportBtn.onclick = () => exportStatus();
+  }
+  if(fhirBtn){
+    fhirBtn.onclick = () => exportFhir();
   }
   if(importBtn && importInput){
     importBtn.onclick = () => {

@@ -39,6 +39,7 @@ This project is an interactive, browser-based odontogram editor that supports fa
 - 📊 Predefined status presets (reset, primary dentition, mixed dentition, edentulous)
 - 📦 34 predefined restoration templates (bridges, removable dentures, bar dentures with implants)
 - 💾 Status export/import in JSON (version 1.3, with plugin custom states and per-tooth notes)
+- 🔗 HL7 FHIR R4 export (collection Bundle of per-tooth Observations, ISO 3950 tooth coding, hybrid local+SNOMED codings)
 - 🔢 Three numbering systems (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) with language switcher (190+ translation keys per language)
 - 🌗 Dark mode support with toggle button (standalone or controlled by parent app)
