@@ -1,7 +1,7 @@
 # 🦷 React Odontogram Editor Modul
 
 [![Download](https://img.shields.io/badge/Download-React--Odontogram--Modul-blue?style=for-the-badge&logo=github)](https://github.com/ZoliQua/React-Odontogram-Modul/releases)
-[![Version](https://img.shields.io/badge/version-1.4.2-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
+[![Version](https://img.shields.io/badge/version-1.5.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul/blob/main/LICENSE)
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
@@ -295,6 +295,7 @@ npm run docs           # Generate TypeDoc docs in docs/
 | `getReadOnly()` | Get current read-only state |
 | `setNotesEnabled(value)` | Enable/disable per-tooth notes |
 | `getNotesEnabled()` | Get current notes-enabled state |
+| `exportFhir(options?)` | Export the chart as an HL7 FHIR R4 collection Bundle (JSON download). Optional `{ subject }` reference; otherwise a placeholder Patient is embedded |
 
 ### 💾 Status Export/Import Format
 The export creates a JSON file (version `1.3`) containing:
@@ -389,6 +390,7 @@ Dieses Projekt ist ein interaktiver, browserbasierter Odontogramm-Editor, der ei
 - 📊 Vordefinierte Statusvorlagen (Zurücksetzen, Milchgebiss, Wechselgebiss, zahnlos)
 - 📦 34 vordefinierte Restaurationsvorlagen (Brücken, herausnehmbare Prothesen, Stegprothesen mit Implantaten)
 - 💾 Status-Export/Import in JSON (Version 1.3, mit Plugin Custom States und per-Zahn Notizen)
+- 🔗 HL7 FHIR R4 Export (Collection-Bundle aus Observations pro Zahn, ISO 3950 Zahnkodierung, hybride lokale + SNOMED Kodierung)
 - 🔢 Drei Nummerierungssysteme (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) mit Sprachumschalter (190+ Übersetzungsschlüssel pro Sprache)
 - 🌗 Dunkler Modus mit Umschalt-Button (eigenständig oder von der übergeordneten App gesteuert)
@@ -599,6 +601,7 @@ export default function Host(){
 | `getReadOnly()` | Aktuellen Schreibgeschützt-Zustand abrufen |
 | `setNotesEnabled(value)` | Per-Zahn Notizen aktivieren/deaktivieren |
 | `getNotesEnabled()` | Aktuellen Notizen-Status abrufen |
+| `exportFhir(options?)` | Befund als HL7 FHIR R4 Collection-Bundle exportieren (JSON-Download). Optionale `{ subject }`-Referenz; sonst wird ein Platzhalter-Patient eingebettet |
 
 ### 📁 Ordnerstruktur
 - `src/App.tsx` - UI-Hülle, Kopfleisten-Steuerung, Sprach-/Nummerierungs-/Dunkelmodus-/Theme-Umschalter
@@ -650,6 +653,7 @@ Este proyecto es un editor de odontograma interactivo basado en navegador que pe
 - 📊 Estados predefinidos (restablecer, dentición primaria, dentición mixta, edéntulo)
 - 📦 34 plantillas de restauración predefinidas (puentes, prótesis removibles, prótesis con barra e implantes)
 - 💾 Exportación/importación de estado en JSON (versión 1.3, con estados personalizados de plugins y notas por diente)
+- 🔗 Exportación HL7 FHIR R4 (Bundle de colección con Observations por diente, codificación dental ISO 3950, codificación híbrida local + SNOMED)
 - 🔢 Tres sistemas de numeración (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) con selector de idioma (190+ claves de traducción por idioma)
 - 🌗 Modo oscuro con botón de alternancia (independiente o controlado por la aplicación principal)
@@ -860,6 +864,7 @@ export default function Host(){
 | `getReadOnly()` | Obtener estado actual de solo lectura |
 | `setNotesEnabled(value)` | Activar/desactivar notas por diente |
 | `getNotesEnabled()` | Obtener estado actual de notas |
+| `exportFhir(options?)` | Exportar el odontograma como Bundle de colección HL7 FHIR R4 (descarga JSON). Referencia `{ subject }` opcional; si no, se incluye un Patient de marcador |
 
 ### 📁 Estructura de carpetas
 - `src/App.tsx` - UI principal, controles de barra superior, selector de idioma/numeración/modo oscuro/tema
@@ -910,6 +915,7 @@ A projekt egy interaktív, böngészőben futó odontogram szerkesztő, amely a 
 - 📊 Előre definiált státusz minták (alaphelyzet, tejfogazat, vegyes fogazat, fogatlan)
 - 📦 34 előre definiált restaurációs sablon (hidak, kivehető protézisek, bár protézisek implantokkal)
 - 💾 Állapot export/import JSON formátumban (1.3 verzió, plugin egyedi állapotokkal és fogankénti megjegyzésekkel)
+- 🔗 HL7 FHIR R4 export (collection Bundle fogankénti Observation-ökkel, ISO 3950 fogkódolás, hibrid lokális + SNOMED kódolás)
 - 🔢 Három számozási rendszer (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) választható nyelvvel (190+ fordítási kulcs nyelvenként)
 - 🌗 Sötét mód támogatás váltógombbal (önálló vagy szülő alkalmazás által vezérelt)
@@ -1120,6 +1126,7 @@ export default function Host(){
 | `getReadOnly()` | Aktuális csak olvasható állapot lekérdezése |
 | `setNotesEnabled(value)` | Fogankénti megjegyzések be/kikapcsolása |
 | `getNotesEnabled()` | Aktuális megjegyzés-engedélyezés állapot lekérdezése |
+| `exportFhir(options?)` | Az odontogram exportálása HL7 FHIR R4 collection Bundle-ként (JSON letöltés). Opcionális `{ subject }` referencia; egyébként placeholder Patient kerül be |
 
 ### 📁 Mappastruktúra
 - `src/App.tsx` - UI váz, fejléc vezérlők, nyelv/számozás/sötét mód/téma választó
