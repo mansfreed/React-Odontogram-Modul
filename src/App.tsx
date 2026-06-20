@@ -456,7 +456,8 @@ export default function App({
                 </button>
               </div>
               <div className="hint">{t("caries.hint")}</div>
-              <div id="cariesChecks" className="check-grid"></div>
+              <div id="cariesChecks"></div>
+              <div id="cariesSubcrownRow" className="check-grid subcrown-row"></div>
             </section>
 
             <section id="fillingSection" className="card">

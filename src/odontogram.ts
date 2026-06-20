@@ -330,6 +330,32 @@ function buildChecks(container: Any, items: Any, onToggle: Any){
   }
 }
 
+/**
+ * Render surface toggles in an anatomical cross/plus layout:
+ * buccal (top), mesial (left), occlusal (center), distal (right), lingual (bottom).
+ * Each item: { value, labelKey?, label?, letter, pos }. `pos` is one of
+ * buccal|mesial|occlusal|distal|lingual and drives grid placement via a CSS class.
+ * Keeps a hidden checkbox input (value=item.value) so existing state-sync works.
+ */
+export function buildSurfaceCross(container: Any, items: Any, onToggle: Any){
+  container.innerHTML = "";
+  const cross = el("div", { class: "surface-cross" });
+  for(const it of items){
+    const id = `chk-${it.value}`;
+    const labelId = `lbl-${it.value}`;
+    const labelText = it.labelKey ? t(it.labelKey) : it.label;
+    const label = el("label", { class: `surface-cell pos-${it.pos}` }, [
+      el("input", { type:"checkbox", id, value:it.value }),
+      el("span", { class:"surf-letter", text: it.letter }),
+      el("span", { id: labelId, class:"surf-name", text: labelText }),
+    ]);
+    const input = label.querySelector("input") as HTMLInputElement;
+    input.addEventListener("change", (e)=>onToggle(it.value, (e.target as HTMLInputElement).checked));
+    cross.appendChild(label);
+  }
+  container.appendChild(cross);
+}
+
 function buildSelect(selectEl: Any, options: Any, onChange: Any){
   selectEl.innerHTML = "";
   for(const opt of options){
@@ -1221,8 +1247,8 @@ function syncControlsFromState(state: Any){
   // mods
   $$("#modsChecks input[type=checkbox]").forEach(c => c.checked = state.mods.has(c.value));
 
-  // caries
-  $$("#cariesChecks input[type=checkbox]").forEach(c => c.checked = state.caries.has(c.value));
+  // caries (cross surfaces + the separate subcrown row)
+  $$("#cariesChecks input[type=checkbox], #cariesSubcrownRow input[type=checkbox]").forEach(c => c.checked = state.caries.has(c.value));
 
   // filling surfaces
   $$("#fillingSurfaceChecks input[type=checkbox]").forEach(c => c.checked = state.fillingSurfaces.has(c.value));
@@ -1231,7 +1257,7 @@ function syncControlsFromState(state: Any){
   const hasCrown = state.crownMaterial !== "natural";
   const hasRemovable = state.toothSelection === "none" && state.bridgeUnit === "removable";
   const hasRestoration = hasCrown || hasRemovable;
-  $$("#cariesChecks input[type=checkbox]").forEach(c => {
+  $$("#cariesChecks input[type=checkbox], #cariesSubcrownRow input[type=checkbox]").forEach(c => {
     if(c.value === "caries-subcrown") setDisabled(c, !hasCrown);
     else setDisabled(c, hasRestoration || hasCrown);
   });
@@ -2706,12 +2732,20 @@ function wireControls(){
     });
   });
 
-  // Caries checks (order)
-  buildChecks($("#cariesChecks"), CARIES_OPTIONS, (id, on)=>{
-    applyToSelected((s)=>{
-      if(on) s.caries.add(id); else s.caries.delete(id);
-    });
-  });
+  // Caries surfaces in a cross layout; subcrown stays as a separate row.
+  const cariesOnToggle = (id: Any, on: Any)=>{
+    applyToSelected((s)=>{ if(on) s.caries.add(id); else s.caries.delete(id); });
+  };
+  buildSurfaceCross($("#cariesChecks"), [
+    { value: "caries-buccal", labelKey: "surface.buccal", letter: "B", pos: "buccal" },
+    { value: "caries-mesial", labelKey: "surface.mesial", letter: "M", pos: "mesial" },
+    { value: "caries-occlusal", labelKey: "surface.occlusal", letter: "O", pos: "occlusal" },
+    { value: "caries-distal", labelKey: "surface.distal", letter: "D", pos: "distal" },
+    { value: "caries-lingual", labelKey: "surface.lingualPalatal", letter: "L", pos: "lingual" },
+  ], cariesOnToggle);
+  buildChecks($("#cariesSubcrownRow"), [
+    { value: "caries-subcrown", labelKey: "surface.subcrown" },
+  ], cariesOnToggle);
 
   // Filling material dropdown
   buildSelect($("#fillingSelect"), getFillingOptions(false), (mat)=>{
@@ -2720,11 +2754,14 @@ function wireControls(){
     });
   });
 
-  // Filling surface checks
-  buildChecks($("#fillingSurfaceChecks"), GROUPS.fillingSurfaces.map((surface)=>({
-    value: surface,
-    labelKey: FILLING_SURFACE_LABELS[surface] || "surface.mesial",
-  })), (surf,on)=>{
+  // Filling surfaces in a cross layout.
+  buildSurfaceCross($("#fillingSurfaceChecks"), [
+    { value: "buccal", labelKey: "surface.buccal", letter: "B", pos: "buccal" },
+    { value: "mesial", labelKey: "surface.mesial", letter: "M", pos: "mesial" },
+    { value: "occlusal", labelKey: "surface.occlusal", letter: "O", pos: "occlusal" },
+    { value: "distal", labelKey: "surface.distal", letter: "D", pos: "distal" },
+    { value: "lingual", labelKey: "surface.lingualPalatal", letter: "L", pos: "lingual" },
+  ], (surf: Any, on: Any)=>{
     applyToSelected((s)=>{
       if(on) s.fillingSurfaces.add(surf); else s.fillingSurfaces.delete(surf);
     });
@@ -3111,6 +3148,8 @@ export function destroyOdontogram(){
   if(mods) mods.innerHTML = "";
   const caries = $("#cariesChecks") as HTMLElement | null;
   if(caries) caries.innerHTML = "";
+  const cariesSub = $("#cariesSubcrownRow") as HTMLElement | null;
+  if(cariesSub) cariesSub.innerHTML = "";
   const fillings = $("#fillingSurfaceChecks") as HTMLElement | null;
   if(fillings) fillings.innerHTML = "";
   const statusExtra = $("#statusExtraSelect") as HTMLSelectElement | null;

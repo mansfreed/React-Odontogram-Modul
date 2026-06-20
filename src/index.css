@@ -447,6 +447,19 @@ select:focus{
   background: rgba(18,185,129,.18);
   border-color: rgba(18,185,129,.5);
 }
+.surface-cross{display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,auto); gap:8px; max-width:340px; margin:4px auto}
+.surface-cross .surface-cell{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-align:center; padding:10px 6px; border-radius:14px; border:1px solid var(--line); background:rgba(0,0,0,.02); cursor:pointer}
+.surface-cross .surface-cell:hover{background:rgba(59,123,255,.06)}
+.surface-cross .surface-cell input[type="checkbox"]{display:none}
+.surface-cross .surface-cell .surf-letter{font-weight:700; font-size:18px; line-height:1}
+.surface-cross .surface-cell .surf-name{font-size:11px; color:var(--muted)}
+.surface-cross .surface-cell:has(input[type="checkbox"]:checked){background:rgba(18,185,129,.18); border-color:rgba(18,185,129,.5)}
+.surface-cross .pos-buccal{grid-column:2; grid-row:1}
+.surface-cross .pos-mesial{grid-column:1; grid-row:2}
+.surface-cross .pos-occlusal{grid-column:2; grid-row:2}
+.surface-cross .pos-distal{grid-column:3; grid-row:2}
+.surface-cross .pos-lingual{grid-column:2; grid-row:3}
+.subcrown-row{margin-top:8px}
 .row input[type="checkbox"]{display:none}
 .row:has(input[type="checkbox"]){
   border-radius:12px;
