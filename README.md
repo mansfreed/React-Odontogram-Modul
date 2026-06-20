@@ -1,7 +1,7 @@
 # 🦷 React Odontogram Editor Modul
 
 [![Download](https://img.shields.io/badge/Download-React--Odontogram--Modul-blue?style=for-the-badge&logo=github)](https://github.com/ZoliQua/React-Odontogram-Modul/releases)
-[![Version](https://img.shields.io/badge/version-1.5.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
+[![Version](https://img.shields.io/badge/version-1.6.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul/blob/main/LICENSE)
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
@@ -40,6 +40,9 @@ This project is an interactive, browser-based odontogram editor that supports fa
 - 📦 34 predefined restoration templates (bridges, removable dentures, bar dentures with implants)
 - 💾 Status export/import in JSON (version 1.3, with plugin custom states and per-tooth notes)
 - 🔗 HL7 FHIR R4 export (collection Bundle of per-tooth Observations, ISO 3950 tooth coding, hybrid local+SNOMED codings)
+- ✚ Cross/plus surface selection UI (B/M/O/D/L) for caries and fillings
+- 🧱 Per-surface restoration materials (mixed fillings, e.g. buccal amalgam + distal composite)
+- 🖼️ PNG/JPG image export of the chart (downloadable)
 - 🔢 Three numbering systems (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) with language switcher (190+ translation keys per language)
 - 🌗 Dark mode support with toggle button (standalone or controlled by parent app)
@@ -296,6 +299,7 @@ npm run docs           # Generate TypeDoc docs in docs/
 | `setNotesEnabled(value)` | Enable/disable per-tooth notes |
 | `getNotesEnabled()` | Get current notes-enabled state |
 | `exportFhir(options?)` | Export the chart as an HL7 FHIR R4 collection Bundle (JSON download). Optional `{ subject }` reference; otherwise a placeholder Patient is embedded |
+| `exportImage(format)` | Download the chart as an image — `"png"` or `"jpg"` |
 
 ### 💾 Status Export/Import Format
 The export creates a JSON file (version `1.3`) containing:
@@ -391,6 +395,9 @@ Dieses Projekt ist ein interaktiver, browserbasierter Odontogramm-Editor, der ei
 - 📦 34 vordefinierte Restaurationsvorlagen (Brücken, herausnehmbare Prothesen, Stegprothesen mit Implantaten)
 - 💾 Status-Export/Import in JSON (Version 1.3, mit Plugin Custom States und per-Zahn Notizen)
 - 🔗 HL7 FHIR R4 Export (Collection-Bundle aus Observations pro Zahn, ISO 3950 Zahnkodierung, hybride lokale + SNOMED Kodierung)
+- ✚ Kreuz-/Plus-Oberflächenauswahl (B/M/O/D/L) für Karies und Füllungen
+- 🧱 Füllungsmaterialien pro Fläche (gemischte Füllungen, z. B. bukkal Amalgam + distal Komposit)
+- 🖼️ PNG/JPG-Bildexport des Befunds (herunterladbar)
 - 🔢 Drei Nummerierungssysteme (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) mit Sprachumschalter (190+ Übersetzungsschlüssel pro Sprache)
 - 🌗 Dunkler Modus mit Umschalt-Button (eigenständig oder von der übergeordneten App gesteuert)
@@ -602,6 +609,7 @@ export default function Host(){
 | `setNotesEnabled(value)` | Per-Zahn Notizen aktivieren/deaktivieren |
 | `getNotesEnabled()` | Aktuellen Notizen-Status abrufen |
 | `exportFhir(options?)` | Befund als HL7 FHIR R4 Collection-Bundle exportieren (JSON-Download). Optionale `{ subject }`-Referenz; sonst wird ein Platzhalter-Patient eingebettet |
+| `exportImage(format)` | Befund als Bild herunterladen — `"png"` oder `"jpg"` |
 
 ### 📁 Ordnerstruktur
 - `src/App.tsx` - UI-Hülle, Kopfleisten-Steuerung, Sprach-/Nummerierungs-/Dunkelmodus-/Theme-Umschalter
@@ -654,6 +662,9 @@ Este proyecto es un editor de odontograma interactivo basado en navegador que pe
 - 📦 34 plantillas de restauración predefinidas (puentes, prótesis removibles, prótesis con barra e implantes)
 - 💾 Exportación/importación de estado en JSON (versión 1.3, con estados personalizados de plugins y notas por diente)
 - 🔗 Exportación HL7 FHIR R4 (Bundle de colección con Observations por diente, codificación dental ISO 3950, codificación híbrida local + SNOMED)
+- ✚ Selección de superficies en cruz (B/M/O/D/L) para caries y obturaciones
+- 🧱 Materiales de obturación por superficie (obturaciones mixtas, p. ej. bucal amalgama + distal composite)
+- 🖼️ Exportación de imagen PNG/JPG del odontograma (descargable)
 - 🔢 Tres sistemas de numeración (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) con selector de idioma (190+ claves de traducción por idioma)
 - 🌗 Modo oscuro con botón de alternancia (independiente o controlado por la aplicación principal)
@@ -865,6 +876,7 @@ export default function Host(){
 | `setNotesEnabled(value)` | Activar/desactivar notas por diente |
 | `getNotesEnabled()` | Obtener estado actual de notas |
 | `exportFhir(options?)` | Exportar el odontograma como Bundle de colección HL7 FHIR R4 (descarga JSON). Referencia `{ subject }` opcional; si no, se incluye un Patient de marcador |
+| `exportImage(format)` | Descargar el odontograma como imagen — `"png"` o `"jpg"` |
 
 ### 📁 Estructura de carpetas
 - `src/App.tsx` - UI principal, controles de barra superior, selector de idioma/numeración/modo oscuro/tema
@@ -916,6 +928,9 @@ A projekt egy interaktív, böngészőben futó odontogram szerkesztő, amely a 
 - 📦 34 előre definiált restaurációs sablon (hidak, kivehető protézisek, bár protézisek implantokkal)
 - 💾 Állapot export/import JSON formátumban (1.3 verzió, plugin egyedi állapotokkal és fogankénti megjegyzésekkel)
 - 🔗 HL7 FHIR R4 export (collection Bundle fogankénti Observation-ökkel, ISO 3950 fogkódolás, hibrid lokális + SNOMED kódolás)
+- ✚ Kereszt felület-választó (B/M/O/D/L) a caries és a tömés panelen
+- 🧱 Felületenkénti tömőanyagok (vegyes tömések, pl. buccal amalgám + distal composite)
+- 🖼️ PNG/JPG képexport az odontogramról (letölthető)
 - 🔢 Három számozási rendszer (FDI, Universal, Palmer)
 - 🌐 I18n (HU/EN/DE/ES/IT/SK/PL/RU) választható nyelvvel (190+ fordítási kulcs nyelvenként)
 - 🌗 Sötét mód támogatás váltógombbal (önálló vagy szülő alkalmazás által vezérelt)
@@ -1127,6 +1142,7 @@ export default function Host(){
 | `setNotesEnabled(value)` | Fogankénti megjegyzések be/kikapcsolása |
 | `getNotesEnabled()` | Aktuális megjegyzés-engedélyezés állapot lekérdezése |
 | `exportFhir(options?)` | Az odontogram exportálása HL7 FHIR R4 collection Bundle-ként (JSON letöltés). Opcionális `{ subject }` referencia; egyébként placeholder Patient kerül be |
+| `exportImage(format)` | Az odontogram letöltése képként — `"png"` vagy `"jpg"` |
 
 ### 📁 Mappastruktúra
 - `src/App.tsx` - UI váz, fejléc vezérlők, nyelv/számozás/sötét mód/téma választó
