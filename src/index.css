@@ -886,3 +886,9 @@ select:focus{
   .tooth-grid.odon-arch-lower .upper-row,
   .tooth-grid.odon-arch-lower .tooth-label-row:first-child{display:none !important}
 }
+
+.odon-export-overlay{position:fixed; inset:0; z-index:130; display:flex; align-items:center; justify-content:center; background:rgba(20,28,40,.55); backdrop-filter:blur(4px)}
+.odon-export-card{background:var(--panel); border-radius:18px; box-shadow:0 20px 60px rgba(30,42,58,.25); padding:28px 40px; text-align:center; min-width:240px}
+.odon-export-title{font-weight:600; font-size:14px; color:var(--muted); margin-bottom:8px}
+.odon-export-pct{font-weight:800; font-size:40px; line-height:1; color:var(--text)}
+.odon-export-phase{font-size:12px; color:var(--muted); margin-top:8px}

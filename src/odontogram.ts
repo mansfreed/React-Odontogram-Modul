@@ -2302,19 +2302,59 @@ function downloadDataUrl(dataUrl: string, filename: string){
   a.remove();
 }
 
-/**
- * Export the rendered odontogram (tooth grid) as a downloadable PNG or JPG.
- * @param format - "png" | "jpg".
- */
+let exportOverlayEl: HTMLElement | null = null;
+let exportInProgress = false;
+
+function showExportOverlay(){
+  if(exportOverlayEl) return;
+  const card = el("div", { class: "odon-export-card" }, [
+    el("div", { class: "odon-export-title", text: t("export.progress.title") }),
+    el("div", { class: "odon-export-pct", id: "odonExportPct", text: "0%" }),
+    el("div", { class: "odon-export-phase", id: "odonExportPhase", text: t("export.progress.preparing") }),
+  ]);
+  exportOverlayEl = el("div", { class: "odon-export-overlay", role: "status", "aria-live": "polite" }, [card]);
+  document.body.appendChild(exportOverlayEl);
+}
+function setExportProgress(pct: number, phaseKey: string){
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  const pctEl = exportOverlayEl?.querySelector("#odonExportPct");
+  const phaseEl = exportOverlayEl?.querySelector("#odonExportPhase");
+  if(pctEl) pctEl.textContent = `${p}%`;
+  if(phaseEl) phaseEl.textContent = t(phaseKey);
+}
+function hideExportOverlay(){
+  if(exportOverlayEl){ exportOverlayEl.remove(); exportOverlayEl = null; }
+}
+
 export async function exportImage(format: "png" | "jpg" = "png"){
-  const target = (document.querySelector("#toothGrid, .tooth-grid") as HTMLElement | null) ?? document.body;
-  const html2canvas = (await import("html2canvas")).default;
-  const canvas = await html2canvas(target, { backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false });
-  const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
-  if(format === "jpg"){
-    downloadDataUrl(canvas.toDataURL("image/jpeg", 0.92), `odontogram-${stamp}.jpg`);
-  }else{
-    downloadDataUrl(canvas.toDataURL("image/png"), `odontogram-${stamp}.png`);
+  if(exportInProgress) return;
+  exportInProgress = true;
+  showExportOverlay();
+  setExportProgress(5, "export.progress.preparing");
+  // Phased estimate: html2canvas gives no real progress, so ease toward 60%.
+  let est = 5;
+  const timer = window.setInterval(() => {
+    est = Math.min(60, est + 4);
+    setExportProgress(est, "export.progress.rendering");
+  }, 120);
+  try{
+    const target = (document.querySelector("#toothGrid, .tooth-grid") as HTMLElement | null) ?? document.body;
+    const html2canvas = (await import("html2canvas")).default;
+    const canvas = await html2canvas(target, { backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false });
+    window.clearInterval(timer);
+    setExportProgress(90, "export.progress.encoding");
+    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+    if(format === "jpg"){
+      downloadDataUrl(canvas.toDataURL("image/jpeg", 0.92), `odontogram-${stamp}.jpg`);
+    }else{
+      downloadDataUrl(canvas.toDataURL("image/png"), `odontogram-${stamp}.png`);
+    }
+    setExportProgress(100, "export.progress.done");
+    await new Promise((r) => window.setTimeout(r, 400));
+  }finally{
+    window.clearInterval(timer);
+    hideExportOverlay();
+    exportInProgress = false;
   }
 }
 
