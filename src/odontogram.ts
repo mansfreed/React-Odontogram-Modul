@@ -2348,22 +2348,187 @@ function hideExportOverlay(){
   if(exportOverlayEl){ exportOverlayEl.remove(); exportOverlayEl = null; }
 }
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * Prune a cloned SVG subtree to match what is actually visible on screen.
+ * Walks the live `original` and its `clone` in parallel and drops clone nodes
+ * whose original element is hidden (display:none / visibility:hidden / opacity 0),
+ * so the exported SVG reflects the current layer state without needing the
+ * engine's CSS rules embedded.
+ */
+export function pruneHiddenClone(original: Element, clone: Element){
+  const oChildren = Array.from(original.children);
+  const cChildren = Array.from(clone.children);
+  for(let i = 0; i < oChildren.length; i++){
+    const o = oChildren[i];
+    const c = cChildren[i];
+    if(!c) continue;
+    const cs = window.getComputedStyle(o);
+    const hiddenByOpacity = cs.opacity !== "" && Number(cs.opacity) === 0;
+    if(cs.display === "none" || cs.visibility === "hidden" || hiddenByOpacity){
+      c.remove();
+    }else{
+      pruneHiddenClone(o, c);
+    }
+  }
+}
+
+/**
+ * Prefix every id and id-reference inside a cloned subtree so that combining
+ * many tiles (cloned from a few shared templates) into one SVG document does
+ * not cause id collisions (gradients, clipPaths, etc.).
+ */
+export function namespaceIds(root: Element, prefix: string){
+  const fixUrl = (v: string) => v.replace(/url\(#([^)]+)\)/g, (_m, id) => `url(#${prefix}${id})`);
+  const refAttrs = ["fill","stroke","clip-path","mask","filter"];
+  root.querySelectorAll("[id]").forEach((e) => {
+    const oldId = e.getAttribute("id");
+    if(oldId) e.setAttribute("id", prefix + oldId);
+  });
+  const nodes: Element[] = [root, ...Array.from(root.querySelectorAll("*"))];
+  for(const e of nodes){
+    for(const a of refAttrs){
+      const v = e.getAttribute(a);
+      if(v && v.includes("url(#")) e.setAttribute(a, fixUrl(v));
+    }
+    const style = e.getAttribute("style");
+    if(style && style.includes("url(#")) e.setAttribute("style", fixUrl(style));
+    const href = e.getAttribute("href") ?? e.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if(href && href.startsWith("#")){
+      e.setAttribute("href", "#" + prefix + href.slice(1));
+      e.removeAttributeNS("http://www.w3.org/1999/xlink", "href");
+    }
+  }
+}
+
+/**
+ * Serialize the on-screen odontogram tooth grid into a single, self-contained
+ * SVG string (vector, no rasterization). Each tooth SVG is placed as a nested
+ * `<svg>` at its laid-out position; tooth number labels are emitted as `<text>`.
+ * Returns null if the grid is not present.
+ */
+function buildOdontogramSvg(): { xml: string; width: number; height: number } | null {
+  const grid = document.querySelector("#toothGrid, .tooth-grid") as HTMLElement | null;
+  if(!grid) return null;
+  const gridRect = grid.getBoundingClientRect();
+  const W = Math.max(1, Math.round(gridRect.width));
+  const H = Math.max(1, Math.round(gridRect.height));
+
+  const out = document.createElementNS(SVG_NS, "svg");
+  out.setAttribute("xmlns", SVG_NS);
+  out.setAttribute("width", String(W));
+  out.setAttribute("height", String(H));
+  out.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const bg = document.createElementNS(SVG_NS, "rect");
+  bg.setAttribute("x", "0"); bg.setAttribute("y", "0");
+  bg.setAttribute("width", String(W)); bg.setAttribute("height", String(H));
+  bg.setAttribute("fill", "#ffffff");
+  out.appendChild(bg);
+
+  // Tooth SVGs, positioned by their rendered box.
+  let tileIndex = 0;
+  grid.querySelectorAll(".tooth-svg > svg").forEach((svgEl) => {
+    const r = svgEl.getBoundingClientRect();
+    if(r.width === 0 || r.height === 0) return;
+    const clone = svgEl.cloneNode(true) as Element;
+    pruneHiddenClone(svgEl, clone);
+    namespaceIds(clone, `t${tileIndex++}-`);
+    const wrap = document.createElementNS(SVG_NS, "svg");
+    wrap.setAttribute("x", String(r.left - gridRect.left));
+    wrap.setAttribute("y", String(r.top - gridRect.top));
+    wrap.setAttribute("width", String(r.width));
+    wrap.setAttribute("height", String(r.height));
+    const vb = svgEl.getAttribute("viewBox");
+    if(vb) wrap.setAttribute("viewBox", vb);
+    wrap.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    while(clone.firstChild) wrap.appendChild(clone.firstChild);
+    out.appendChild(wrap);
+  });
+
+  // Tooth number labels as text.
+  grid.querySelectorAll(".tooth-label-cell").forEach((cell) => {
+    const text = (cell.textContent || "").trim();
+    if(!text) return;
+    const r = cell.getBoundingClientRect();
+    if(r.width === 0 || r.height === 0) return;
+    const cs = window.getComputedStyle(cell);
+    const txt = document.createElementNS(SVG_NS, "text");
+    txt.setAttribute("x", String(r.left - gridRect.left + r.width / 2));
+    txt.setAttribute("y", String(r.top - gridRect.top + r.height / 2));
+    txt.setAttribute("text-anchor", "middle");
+    txt.setAttribute("dominant-baseline", "central");
+    txt.setAttribute("font-family", cs.fontFamily);
+    txt.setAttribute("font-size", cs.fontSize);
+    txt.setAttribute("font-weight", cs.fontWeight);
+    txt.setAttribute("fill", cs.color);
+    txt.textContent = text;
+    out.appendChild(txt);
+  });
+
+  const xml = new XMLSerializer().serializeToString(out);
+  return { xml: `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`, width: W, height: H };
+}
+
+/** Export the odontogram as a downloadable, scalable SVG file. */
+export async function exportSvg(){
+  if(exportInProgress) return;
+  exportInProgress = true;
+  showExportOverlay();
+  setExportProgress(30, "export.progress.preparing");
+  try{
+    const built = buildOdontogramSvg();
+    if(!built) throw new Error("Odontogram grid not found");
+    setExportProgress(90, "export.progress.encoding");
+    const blob = new Blob([built.xml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `odontogram-${stamp}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setExportProgress(100, "export.progress.done");
+    await new Promise((r) => window.setTimeout(r, 300));
+  }finally{
+    hideExportOverlay();
+    exportInProgress = false;
+  }
+}
+
+/**
+ * Export the odontogram as PNG or JPG. Renders the serialized SVG via the
+ * browser's native rasterizer (Image → canvas) — much faster than the previous
+ * html2canvas DOM rasterization, and sharper.
+ */
 export async function exportImage(format: "png" | "jpg" = "png"){
   if(exportInProgress) return;
   exportInProgress = true;
   showExportOverlay();
-  setExportProgress(5, "export.progress.preparing");
-  // Phased estimate: html2canvas gives no real progress, so ease toward 60%.
-  let est = 5;
-  const timer = window.setInterval(() => {
-    est = Math.min(60, est + 4);
-    setExportProgress(est, "export.progress.rendering");
-  }, 120);
+  setExportProgress(10, "export.progress.preparing");
   try{
-    const target = (document.querySelector("#toothGrid, .tooth-grid") as HTMLElement | null) ?? document.body;
-    const html2canvas = (await import("html2canvas")).default;
-    const canvas = await html2canvas(target, { backgroundColor: "#ffffff", scale: 2, useCORS: true, logging: false });
-    window.clearInterval(timer);
+    const built = buildOdontogramSvg();
+    if(!built) throw new Error("Odontogram grid not found");
+    setExportProgress(40, "export.progress.rendering");
+    const scale = 2;
+    const svgUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(built.xml);
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("SVG rasterization failed"));
+      img.src = svgUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = built.width * scale;
+    canvas.height = built.height * scale;
+    const ctx = canvas.getContext("2d");
+    if(!ctx) throw new Error("Canvas 2D context unavailable");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     setExportProgress(90, "export.progress.encoding");
     const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
     if(format === "jpg"){
@@ -2372,9 +2537,8 @@ export async function exportImage(format: "png" | "jpg" = "png"){
       downloadDataUrl(canvas.toDataURL("image/png"), `odontogram-${stamp}.png`);
     }
     setExportProgress(100, "export.progress.done");
-    await new Promise((r) => window.setTimeout(r, 400));
+    await new Promise((r) => window.setTimeout(r, 300));
   }finally{
-    window.clearInterval(timer);
     hideExportOverlay();
     exportInProgress = false;
   }
@@ -3200,11 +3364,15 @@ function wireControls(){
   }
   const pngBtn = $("#btnStatusPngExport") as HTMLButtonElement | null;
   const jpgBtn = $("#btnStatusJpgExport") as HTMLButtonElement | null;
+  const svgBtn = $("#btnStatusSvgExport") as HTMLButtonElement | null;
   if(pngBtn){
     pngBtn.onclick = () => { exportImage("png").catch((e)=>console.error("PNG export failed", e)); };
   }
   if(jpgBtn){
     jpgBtn.onclick = () => { exportImage("jpg").catch((e)=>console.error("JPG export failed", e)); };
+  }
+  if(svgBtn){
+    svgBtn.onclick = () => { exportSvg().catch((e)=>console.error("SVG export failed", e)); };
   }
   if(importBtn && importInput){
     importBtn.onclick = () => {
