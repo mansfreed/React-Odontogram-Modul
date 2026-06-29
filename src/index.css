@@ -908,3 +908,4 @@ select:focus{
 .odon-tour-btn:disabled{opacity:.4; cursor:default}
 .odon-tour-skip{margin-right:auto; background:transparent}
 .odon-tour-next{background:rgba(59,123,255,.18); border-color:rgba(59,123,255,.45)}
+.caries-deep path, .caries-deep circle, .caries-deep ellipse { stroke: #b3261e; stroke-width: .5px; }

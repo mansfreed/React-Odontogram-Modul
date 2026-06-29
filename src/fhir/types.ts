@@ -11,6 +11,9 @@ export interface ToothRecord {
   periapicalType?: string;
   endo?: string;
   caries?: string[];
+  cariesDepth?: string;
+  calculus?: boolean;
+  rootResorption?: boolean;
   fillingMaterial?: string;
   fillingSurfaces?: string[];
   fillingSurfaceMaterials?: Record<string, string>;

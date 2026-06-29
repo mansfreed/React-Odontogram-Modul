@@ -500,6 +500,10 @@ export default function App({
               <div className="hint">{t("caries.hint")}</div>
               <div id="cariesChecks"></div>
               <div id="cariesSubcrownRow" className="check-grid subcrown-row"></div>
+              <div id="cariesDepthRow" className="row hidden">
+                <span>{t("caries.depthLabel")}</span>
+                <select id="cariesDepthSelect"></select>
+              </div>
             </section>
 
             <section id="fillingSection" className="card">
@@ -541,6 +545,12 @@ export default function App({
                   <span>{t("endo.resection")}</span>
                 </label>
                 <label>
+                  <input type="checkbox" id="rootResorption" />
+                  <span>{t("root.resorption")}</span>
+                </label>
+              </div>
+              <div className="row inline-checks">
+                <label>
                   <input type="checkbox" id="parapulpalPin" />
                   <span>{t("endo.parapulpalPin")}</span>
                 </label>
@@ -562,6 +572,9 @@ export default function App({
               <div id="periapicalTypeRow" className="row hidden">
                 <span>{t("periapical.typeLabel")}</span>
                 <select id="periapicalTypeSelect"></select>
+              </div>
+              <div id="calculusRow" className="check-grid hidden">
+                <label><input type="checkbox" id="calculus" /><span>{t("calculus.label")}</span></label>
               </div>
             </section>
 

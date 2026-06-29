@@ -131,14 +131,17 @@ function defaultState(){
     toothSelection: "tooth-base", // none | tooth-base | milktooth | implant | variants
     pulpInflam: false,
     endoResection: false,
+    rootResorption: false,
     mods: new Set(),
     periapicalType: "none", // none | granuloma | cyst | abscess (qualifies mods "inflammation")
     endo: "none", // none | endo-medical-filling | endo-filling | endo-glass-pin | endo-metal-pin
     caries: new Set(),
+    cariesDepth: "surface", // surface | dentin | deep (opacity + deep contour on the caries group)
     fillingMaterial: "none", // active material chosen in the dropdown (applied on surface tap)
     fillingSurfaces: new Set(), // buccal/mesial/distal/occlusal (= keys of fillingSurfaceMaterials)
     fillingSurfaceMaterials: new Map(), // surface -> amalgam|composite|gic|temporary
     fissureSealing: false,
+    calculus: false,
     contactMesial: false,
     contactDistal: false,
     bruxismWear: false,
@@ -617,6 +620,14 @@ function getMobilityOptions(){
   ];
 }
 
+function getCariesDepthOptions(){
+  return [
+    {value:"surface", label:t("caries.depth.surface")},
+    {value:"dentin", label:t("caries.depth.dentin")},
+    {value:"deep", label:t("caries.depth.deep")},
+  ];
+}
+
 // ---- SVG apply logic ----
 function applyStateToSvgSingle(toothNo: Any, svg: Any){
   const state = toothState.get(toothNo);
@@ -651,12 +662,20 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
   setActive(svgGetById(svg, "no-tooth-after-extraction"), false);
   clearAllInGroup(svg, GROUPS.variants);
   clearAllInGroup(svg, GROUPS.mods);
+  for(const id of ["cysta","granuloma","abscess"]){
+    setActive(svgGetById(svg, id), false);
+  }
   clearAllInGroup(svg, GROUPS.endo);
+  setActive(svgGetById(svg, "endo-resorption"), false);
   // Caries: subcrown and surface groups
   // caries-distal etc are groups, buccal/subcrown are paths
   for(const id of ["caries-subcrown","caries-buccal","caries-lingual","caries-distal","caries-mesial","caries-occlusal"]){
     setActive(svgGetById(svg,id), false);
   }
+  for(const s of GROUPS.fillingSurfaces){
+    setActive(svgGetById(svg, `subcaries-${s}`), false);
+  }
+  setActive(svgGetById(svg, "calculus"), false);
   // Fillings
   for(const mat of ["amalgam","composite","gic","temporary"]){
     for(const s of GROUPS.fillingSurfaces){
@@ -736,6 +755,12 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
   for(const id of state.mods){
     setActive(svgGetById(svg, id), true);
   }
+  if(state.mods.has("inflammation")){
+    const glyph = state.periapicalType === "cyst" ? "cysta"
+      : state.periapicalType === "abscess" ? "abscess"
+      : "granuloma"; // default incl. "none" and "granuloma"
+    setActive(svgGetById(svg, glyph), true);
+  }
   if(state.mobility !== "none" && state.toothSelection !== "none" && !extraction){
     setActive(svgGetById(svg, "mobility"), true);
   }
@@ -776,6 +801,9 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
   }
   if(state.parapulpalPin && isToothPresent(state.toothSelection) && !underGum && !extraction){
     setActive(svgGetById(svg, "parapulpal-pin"), true);
+  }
+  if(state.rootResorption && isToothPresent(state.toothSelection)){
+    setActive(svgGetById(svg, "endo-resorption"), true);
   }
 
   // 4) Removable prosthesis
@@ -899,8 +927,21 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
         continue;
       }
       if(hasRestoration || hasCrown) continue;
-      // map surface ids to svg ids: buccal is path; others are groups
-      setActive(svgGetById(svg, id), true);
+      // Derive secondary caries: if this surface also has a filling, show the
+      // subcaries layer at that surface instead of the normal caries layer.
+      const surface = id.replace("caries-", ""); // e.g. caries-mesial -> mesial
+      if(state.fillingSurfaceMaterials.has(surface)){
+        setActive(svgGetById(svg, `subcaries-${surface}`), true);
+      }else{
+        setActive(svgGetById(svg, id), true);
+      }
+    }
+
+    const cariesGroup = svgGetById(svg, "caries") as SVGElement | null;
+    if(cariesGroup){
+      const op = state.cariesDepth === "deep" ? "1" : state.cariesDepth === "dentin" ? "0.7" : "0.45";
+      cariesGroup.style.opacity = state.caries.size > 0 ? op : "";
+      cariesGroup.classList.toggle("caries-deep", state.caries.size > 0 && state.cariesDepth === "deep");
     }
 
     // Fillings: each surface rendered with its own material
@@ -910,14 +951,7 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
       }
     }
 
-    // 6) Caries vs Filling same surface: if filling ON on surface, caries OFF on that surface
-    // (Prefer filling)
-    if(state.fillingSurfaceMaterials.size > 0 && !hasRestoration && !hasCrown){
-      for(const s of state.fillingSurfaceMaterials.keys()){
-        const cariesId = `caries-${s}`;
-        setActive(svgGetById(svg, cariesId), false);
-      }
-    }
+    if(state.calculus) setActive(svgGetById(svg, "calculus"), true);
   }
 
   if(fissureAllowed && state.fissureSealing){
@@ -1265,9 +1299,19 @@ function syncControlsFromState(state: Any){
   if($("#periapicalTypeSelect").value !== state.periapicalType){
     state.periapicalType = $("#periapicalTypeSelect").value;
   }
+  $("#calculus").checked = !!state.calculus;
+  const calculusAllowed = state.toothSelection === "tooth-base" || state.toothSelection === "milktooth";
+  $("#calculusRow").classList.toggle("hidden", !calculusAllowed);
+  $("#rootResorption").checked = !!state.rootResorption;
 
   // caries (cross surfaces + the separate subcrown row)
   $$("#cariesChecks input[type=checkbox], #cariesSubcrownRow input[type=checkbox]").forEach(c => c.checked = state.caries.has(c.value));
+
+  $("#cariesDepthRow").classList.toggle("hidden", state.caries.size === 0);
+  setSelectOptions($("#cariesDepthSelect"), getCariesDepthOptions(), state.cariesDepth);
+  if($("#cariesDepthSelect").value !== state.cariesDepth){
+    state.cariesDepth = $("#cariesDepthSelect").value;
+  }
 
   // filling surfaces
   $$("#fillingSurfaceChecks input[type=checkbox]").forEach(c => {
@@ -1569,6 +1613,8 @@ function refreshAllSelectOptions(){
   if(mobilityEl) setSelectOptions(mobilityEl, getMobilityOptions(), mobilityEl.value);
   const periapicalEl = $("#periapicalTypeSelect");
   if(periapicalEl) setSelectOptions(periapicalEl, getPeriapicalTypeOptions(), periapicalEl.value);
+  const cariesDepthEl = $("#cariesDepthSelect");
+  if(cariesDepthEl) setSelectOptions(cariesDepthEl, getCariesDepthOptions(), cariesDepthEl.value);
 }
 
 function refreshLocalizedContent(){
@@ -2171,14 +2217,17 @@ function serializeState(s: Any){
     toothSelection: s.toothSelection,
     pulpInflam: !!s.pulpInflam,
     endoResection: !!s.endoResection,
+    rootResorption: !!s.rootResorption,
     mods: Array.from(s.mods || []),
     periapicalType: s.periapicalType,
     endo: s.endo,
     caries: Array.from(s.caries || []),
+    cariesDepth: s.cariesDepth,
     fillingMaterial: s.fillingMaterial,
     fillingSurfaces: Array.from(s.fillingSurfaces || []),
     fillingSurfaceMaterials: Object.fromEntries(s.fillingSurfaceMaterials || new Map()),
     fissureSealing: !!s.fissureSealing,
+    calculus: !!s.calculus,
     contactMesial: !!s.contactMesial,
     contactDistal: !!s.contactDistal,
     bruxismWear: !!s.bruxismWear,
@@ -2211,6 +2260,7 @@ const VALID_CROWN_MATERIAL = new Set(["natural","broken","radix","emax","zircon"
 const VALID_MODS = new Set(["inflammation","parodontal","mobility"]);
 const VALID_PERIAPICAL_TYPE = new Set(["none","granuloma","cyst","abscess"]);
 const VALID_CARIES = new Set(["caries-subcrown","caries-buccal","caries-lingual","caries-mesial","caries-distal","caries-occlusal"]);
+const VALID_CARIES_DEPTH = new Set(["surface","dentin","deep"]);
 const VALID_FILLING_SURFACES = new Set(["buccal","lingual","mesial","distal","occlusal"]);
 
 function filterSet(arr: Any, allowed: Set<string>): Set<string>{
@@ -2228,10 +2278,12 @@ function hydrateState(raw: Any){
   s.toothSelection = validateEnum(raw.toothSelection, VALID_TOOTH_SELECTION, s.toothSelection);
   s.pulpInflam = !!raw.pulpInflam;
   s.endoResection = !!raw.endoResection;
+  s.rootResorption = !!raw.rootResorption;
   s.mods = filterSet(raw.mods, VALID_MODS);
   s.periapicalType = validateEnum(raw.periapicalType, VALID_PERIAPICAL_TYPE, "none");
   s.endo = validateEnum(raw.endo, VALID_ENDO, s.endo);
   s.caries = filterSet(raw.caries, VALID_CARIES);
+  s.cariesDepth = validateEnum(raw.cariesDepth, VALID_CARIES_DEPTH, "surface");
   s.fillingMaterial = validateEnum(raw.fillingMaterial, VALID_FILLING_MATERIAL, s.fillingMaterial);
   s.fillingSurfaces = filterSet(raw.fillingSurfaces, VALID_FILLING_SURFACES);
   s.fillingSurfaceMaterials = new Map();
@@ -2252,6 +2304,7 @@ function hydrateState(raw: Any){
   // keep fillingSurfaces in sync with the map keys
   s.fillingSurfaces = new Set(s.fillingSurfaceMaterials.keys());
   s.fissureSealing = !!raw.fissureSealing;
+  s.calculus = !!raw.calculus;
   s.contactMesial = !!raw.contactMesial;
   s.contactDistal = !!raw.contactDistal;
   s.bruxismWear = !!raw.bruxismWear;
@@ -2970,6 +3023,11 @@ function wireControls(){
     });
   });
 
+  // Root resorption
+  $("#rootResorption").addEventListener("change", (e)=>{
+    applyToSelected((s)=>{ s.rootResorption = (e.target as HTMLInputElement).checked; });
+  });
+
   // Bridge unit (missing tooth)
   buildSelect($("#bridgeUnitSelect"), getBridgeUnitOptions(), (value)=>{
     applyToSelected((s)=>{
@@ -3043,6 +3101,9 @@ function wireControls(){
   buildChecks($("#cariesSubcrownRow"), [
     { value: "caries-subcrown", labelKey: "surface.subcrown" },
   ], cariesOnToggle);
+  buildSelect($("#cariesDepthSelect"), getCariesDepthOptions(), (val)=>{
+    applyToSelected((s)=>{ s.cariesDepth = val; });
+  });
 
   // Filling material dropdown
   buildSelect($("#fillingSelect"), getFillingOptions(false), (mat)=>{
@@ -3082,6 +3143,11 @@ function wireControls(){
     applyToSelected((s)=>{
       s.fissureSealing = (e.target as HTMLInputElement).checked;
     });
+  });
+
+  // Calculus
+  $("#calculus").addEventListener("change", (e)=>{
+    applyToSelected((s)=>{ s.calculus = (e.target as HTMLInputElement).checked; });
   });
 
   // Contact point missing
