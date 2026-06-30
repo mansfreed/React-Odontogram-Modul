@@ -1,7 +1,7 @@
 # 🦷 React Odontogram Editor Modul
 
 [![Download](https://img.shields.io/badge/Download-React--Odontogram--Modul-blue?style=for-the-badge&logo=github)](https://github.com/ZoliQua/React-Odontogram-Modul/releases)
-[![Version](https://img.shields.io/badge/version-1.7.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
+[![Version](https://img.shields.io/badge/version-1.8.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul/blob/main/LICENSE)
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
@@ -42,7 +42,10 @@ This project is an interactive, browser-based odontogram editor that supports fa
 - 🔗 HL7 FHIR R4 export (collection Bundle of per-tooth Observations, ISO 3950 tooth coding, hybrid local+SNOMED codings)
 - ✚ Cross/plus surface selection UI (B/M/O/D/L) for caries and fillings
 - 🧱 Per-surface restoration materials (mixed fillings, e.g. buccal amalgam + distal composite)
-- 🖼️ PNG/JPG image export of the chart (downloadable)
+- 🖼️ PNG/JPG/SVG image export of the chart (downloadable; PNG/JPG rasterized from vector SVG)
+- 🦷 Secondary (recurrent) caries — auto-derived when caries overlaps a filling
+- 🪨 Calculus, root resorption, and typed periapical lesions (granuloma / cyst / abscess)
+- 📏 Per-tooth caries depth (superficial / dentin / deep)
 - 🗂️ Consolidated Export dropdown (Status JSON / FHIR / PNG / JPG)
 - 📥 Import dropdown with FHIR import (round-trips exported Bundles)
 - ⏳ Progress overlay during image export
@@ -304,6 +307,7 @@ npm run docs           # Generate TypeDoc docs in docs/
 | `getNotesEnabled()` | Get current notes-enabled state |
 | `exportFhir(options?)` | Export the chart as an HL7 FHIR R4 collection Bundle (JSON download). Optional `{ subject }` reference; otherwise a placeholder Patient is embedded |
 | `exportImage(format)` | Download the chart as an image — `"png"` or `"jpg"` |
+| `exportSvg()` | Download the chart as a scalable SVG (vector) |
 | `importFhirBundle(input)` | Import a FHIR R4 Bundle (object or JSON string) produced by this module |
 | `setImportFormat(format)` | Set the next file import's parser — `"status"` or `"fhir"` |
 | `startIntroTour()` | Launch the 12-step interactive intro tour |
@@ -404,7 +408,10 @@ Dieses Projekt ist ein interaktiver, browserbasierter Odontogramm-Editor, der ei
 - 🔗 HL7 FHIR R4 Export (Collection-Bundle aus Observations pro Zahn, ISO 3950 Zahnkodierung, hybride lokale + SNOMED Kodierung)
 - ✚ Kreuz-/Plus-Oberflächenauswahl (B/M/O/D/L) für Karies und Füllungen
 - 🧱 Füllungsmaterialien pro Fläche (gemischte Füllungen, z. B. bukkal Amalgam + distal Komposit)
-- 🖼️ PNG/JPG-Bildexport des Befunds (herunterladbar)
+- 🖼️ PNG/JPG/SVG-Bildexport des Befunds (herunterladbar; PNG/JPG aus Vektor-SVG gerastert)
+- 🦷 Sekundärkaries — automatisch abgeleitet, wenn Karies eine Füllung überlappt
+- 🪨 Zahnstein, Wurzelresorption und typisierte periapikale Läsionen (Granulom / Zyste / Abszess)
+- 📏 Kariestiefe pro Zahn (oberflächlich / Dentin / tief)
 - 🗂️ Konsolidiertes Export-Dropdown (Status JSON / FHIR / PNG / JPG)
 - 📥 Import-Dropdown mit FHIR-Import (liest exportierte Bundles zurück)
 - ⏳ Fortschrittsanzeige beim Bildexport
@@ -621,6 +628,7 @@ export default function Host(){
 | `getNotesEnabled()` | Aktuellen Notizen-Status abrufen |
 | `exportFhir(options?)` | Befund als HL7 FHIR R4 Collection-Bundle exportieren (JSON-Download). Optionale `{ subject }`-Referenz; sonst wird ein Platzhalter-Patient eingebettet |
 | `exportImage(format)` | Befund als Bild herunterladen — `"png"` oder `"jpg"` |
+| `exportSvg()` | Befund als skalierbares SVG (Vektor) herunterladen |
 | `importFhirBundle(input)` | Ein von diesem Modul erzeugtes FHIR-R4-Bundle importieren (Objekt oder JSON-String) |
 | `setImportFormat(format)` | Parser für den nächsten Datei-Import festlegen — `"status"` oder `"fhir"` |
 | `startIntroTour()` | Die 12-stufige interaktive Einführungstour starten |
@@ -678,7 +686,10 @@ Este proyecto es un editor de odontograma interactivo basado en navegador que pe
 - 🔗 Exportación HL7 FHIR R4 (Bundle de colección con Observations por diente, codificación dental ISO 3950, codificación híbrida local + SNOMED)
 - ✚ Selección de superficies en cruz (B/M/O/D/L) para caries y obturaciones
 - 🧱 Materiales de obturación por superficie (obturaciones mixtas, p. ej. bucal amalgama + distal composite)
-- 🖼️ Exportación de imagen PNG/JPG del odontograma (descargable)
+- 🖼️ Exportación de imagen PNG/JPG/SVG del odontograma (descargable; PNG/JPG rasterizado desde SVG vectorial)
+- 🦷 Caries secundaria — derivada automáticamente cuando la caries coincide con una obturación
+- 🪨 Cálculo, reabsorción radicular y lesiones periapicales tipificadas (granuloma / quiste / absceso)
+- 📏 Profundidad de caries por diente (superficial / dentina / profunda)
 - 🗂️ Menú de exportación unificado (Estado JSON / FHIR / PNG / JPG)
 - 📥 Menú de importación con importación FHIR (recupera Bundles exportados)
 - ⏳ Superposición de progreso durante la exportación de imagen
@@ -895,6 +906,7 @@ export default function Host(){
 | `getNotesEnabled()` | Obtener estado actual de notas |
 | `exportFhir(options?)` | Exportar el odontograma como Bundle de colección HL7 FHIR R4 (descarga JSON). Referencia `{ subject }` opcional; si no, se incluye un Patient de marcador |
 | `exportImage(format)` | Descargar el odontograma como imagen — `"png"` o `"jpg"` |
+| `exportSvg()` | Descargar el odontograma como SVG escalable (vectorial) |
 | `importFhirBundle(input)` | Importar un Bundle FHIR R4 (objeto o cadena JSON) producido por este módulo |
 | `setImportFormat(format)` | Definir el parser de la próxima importación — `"status"` o `"fhir"` |
 | `startIntroTour()` | Iniciar el tour interactivo de introducción de 12 pasos |
@@ -951,7 +963,10 @@ A projekt egy interaktív, böngészőben futó odontogram szerkesztő, amely a 
 - 🔗 HL7 FHIR R4 export (collection Bundle fogankénti Observation-ökkel, ISO 3950 fogkódolás, hibrid lokális + SNOMED kódolás)
 - ✚ Kereszt felület-választó (B/M/O/D/L) a caries és a tömés panelen
 - 🧱 Felületenkénti tömőanyagok (vegyes tömések, pl. buccal amalgám + distal composite)
-- 🖼️ PNG/JPG képexport az odontogramról (letölthető)
+- 🖼️ PNG/JPG/SVG képexport az odontogramról (letölthető; a PNG/JPG vektoros SVG-ből rasterizált)
+- 🦷 Szekunder (másodlagos) caries — automatikusan, ha a caries tömésre esik
+- 🪨 Fogkő, gyökérreszorpció és típusos periapikális léziók (granuloma / ciszta / tályog)
+- 📏 Fogankénti caries-mélység (felületes / dentin / mély)
 - 🗂️ Egységes Export menü (Státusz JSON / FHIR / PNG / JPG)
 - 📥 Import menü FHIR importtal (visszatölti az exportált Bundle-öket)
 - ⏳ Folyamatjelző overlay a képexport alatt
@@ -1168,6 +1183,7 @@ export default function Host(){
 | `getNotesEnabled()` | Aktuális megjegyzés-engedélyezés állapot lekérdezése |
 | `exportFhir(options?)` | Az odontogram exportálása HL7 FHIR R4 collection Bundle-ként (JSON letöltés). Opcionális `{ subject }` referencia; egyébként placeholder Patient kerül be |
 | `exportImage(format)` | Az odontogram letöltése képként — `"png"` vagy `"jpg"` |
+| `exportSvg()` | Az odontogram letöltése méretezhető SVG-ként (vektoros) |
 | `importFhirBundle(input)` | A modul által készített FHIR R4 Bundle importálása (objektum vagy JSON szöveg) |
 | `setImportFormat(format)` | A következő fájlimport értelmezője — `"status"` vagy `"fhir"` |
 | `startIntroTour()` | A 12 lépéses interaktív bemutató túra indítása |
