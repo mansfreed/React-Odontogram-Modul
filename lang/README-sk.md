@@ -3,6 +3,7 @@
 [![Download](https://img.shields.io/badge/Download-React--Odontogram--Modul-blue?style=for-the-badge&logo=github)](https://github.com/ZoliQua/React-Odontogram-Modul/releases)
 [![Version](https://img.shields.io/badge/version-1.10.0-green?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul)
 [![License](https://img.shields.io/badge/license-MIT-orange?style=for-the-badge)](https://github.com/ZoliQua/React-Odontogram-Modul/blob/main/LICENSE)
+[![DOI](../src/assets/zenodo.21156787.svg)](https://doi.org/10.5281/zenodo.21156787)
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -386,3 +387,14 @@ Export vytvorí súbor JSON (verzia `1.3`) obsahujúci:
 - Modul odontogramu používa vlastný interný stav (nie React stav) pre výkon a jednoduchosť.
 - Mliečne zuby majú obmedzenú sadu dostupných materiálov (žiadne amalgámové výplne, žiadne endodontické kolíky).
 - Implantátové zuby majú inú sadu možností korunky/abutmentu ako prirodzené zuby.
+
+### 📖 Ako citovať
+
+Ak tento modul použijete vo svojej práci, prosím, citujte ho.
+
+**Táto verzia (v1.10.0):**
+> Dul, Z. (2026). *React Odontogram Modul* (v1.10.0). Zenodo. https://doi.org/10.5281/zenodo.21156788
+
+**Všetky verzie (konceptové DOI):** https://doi.org/10.5281/zenodo.21156787
+
+Strojovo čitateľné citačné metadáta sú v súbore [`CITATION.cff`](../CITATION.cff).
