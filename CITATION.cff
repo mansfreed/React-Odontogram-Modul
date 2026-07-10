@@ -7,9 +7,9 @@ abstract: >-
   and TypeScript. Supports multi-surface caries and filling charting, endodontic,
   prosthetic and periodontal states, FDI/Universal/Palmer tooth numbering,
   HL7 FHIR R4 export/import, optional ICDAS II caries scoring, and a user
-  interface localized in eight languages.
-version: 1.10.0
-date-released: 2026-07-03
+  interface localized in nine languages.
+version: 1.11.1
+date-released: 2026-07-10
 url: "https://react-odontogram-modul.vercel.app/"
 repository-code: "https://github.com/ZoliQua/React-Odontogram-Modul"
 license: MIT

@@ -159,7 +159,7 @@ function defaultState(){
     bridgePillar: false,
     bridgeUnit: "none", // none | removable | zircon | metal | temporary
     mobility: "none", // none | m1 | m2 | m3
-    crownMaterial: "natural",   // natural | broken | emax | zircon | metal | temporary | telescope
+    crownMaterial: "natural",   // natural | broken | crownprep | radix | emax | zircon | metal | temporary | telescope
     customStates: {} as Record<string, unknown>,
     note: "",
   };
@@ -799,7 +799,7 @@ function applyStateToSvgSingle(toothNo: Any, svg: Any){
   const fissureAllowed = state.toothSelection === "tooth-base" && FISSURE_ALLOWED.has(toothNo);
   const contactAllowed = state.toothSelection === "tooth-base" || state.toothSelection === "milktooth" || BROKEN_VARIANTS.has(state.toothSelection);
   const bruxismAllowed = state.toothSelection === "tooth-base" && state.crownMaterial === "natural";
-  const extractionPlanAllowed = ["tooth-base","milktooth","implant","tooth-crownprep","tooth-under-gum"].includes(state.toothSelection);
+  const extractionPlanAllowed = ["tooth-base","milktooth","implant","tooth-under-gum"].includes(state.toothSelection);
 
   // base visibility toggle
   setActive(svgGetById(svg, "base"), showBase);
@@ -1197,7 +1197,6 @@ function getStateSummary(toothNo: number): string[]{
   if(state.toothSelection === "none") summary.push(t("toothSelect.none"));
   else if(state.toothSelection === "milktooth") summary.push(t("toothSelect.milk"));
   else if(state.toothSelection === "implant") summary.push(t("toothSelect.implant"));
-  else if(state.toothSelection === "tooth-crownprep") summary.push(t("toothSelect.crownPrep"));
   else if(state.toothSelection === "tooth-under-gum") summary.push(t("toothSelect.underGum"));
 
   // Crown
@@ -1511,7 +1510,7 @@ function syncControlsFromState(state: Any){
   $("#fissureSealingRow").classList.toggle("hidden", !fissureAllowed);
   const extractionPlanAllowed = selectedList.length > 0 && selectedList.every(tn => {
     const s = toothState.get(tn);
-    return s && ["tooth-base","milktooth","implant","tooth-crownprep","tooth-under-gum"].includes(s.toothSelection);
+    return s && ["tooth-base","milktooth","implant","tooth-under-gum"].includes(s.toothSelection);
   });
   $("#extractionPlanRow").classList.toggle("hidden", !extractionPlanAllowed);
   // crown-replace: visible when permanent tooth + emax/zircon/metal/temporary/telescope crown
@@ -2425,7 +2424,7 @@ function serializeState(s: Any){
 }
 
 // Allowed values for imported state fields
-const VALID_TOOTH_SELECTION = new Set(["none","tooth-base","milktooth","implant","tooth-crownprep","tooth-under-gum","no-tooth-after-extraction"]);
+const VALID_TOOTH_SELECTION = new Set(["none","tooth-base","milktooth","implant","tooth-under-gum","no-tooth-after-extraction"]);
 const VALID_ENDO = new Set(["none","endo-medical-filling","endo-filling","endo-filling-incomplete","endo-glass-pin","endo-metal-pin"]);
 const VALID_FILLING_MATERIAL = new Set(["none","amalgam","composite","gic","temporary"]);
 const VALID_BRIDGE_UNIT = new Set(["none","removable","zircon","metal","temporary","bar","bar-prosthesis"]);
@@ -3155,7 +3154,7 @@ function wireControls(){
       }
       const next = defaultState();
       next.toothSelection = value;
-      if(!["tooth-base","milktooth","implant","tooth-crownprep","tooth-under-gum"].includes(value)){
+      if(!["tooth-base","milktooth","implant","tooth-under-gum"].includes(value)){
         next.extractionPlan = false;
       }
       if(value !== "none"){

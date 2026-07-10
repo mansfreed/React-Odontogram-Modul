@@ -2,9 +2,12 @@
  * Canonical system URLs and coding maps for the FHIR export.
  *
  * - Local codes mirror the engine's own enum values and are ALWAYS emitted,
- *   guaranteeing round-trip fidelity even where no standard code exists.
- * - SNOMED CT codes are added only where a verified concept exists
- *   (see SNOMED_CODES); they are additive and never required.
+ *   guaranteeing round-trip fidelity even where no standard code exists. The
+ *   local system is currently the ONLY coding emitted for clinical states.
+ * - SNOMED CT is not yet active: `SNOMED_CODES` is currently empty and no
+ *   `CodeEntry` sets `snomed`, so no SNOMED coding is emitted. When populated
+ *   (with codes verified against the official SNOMED CT browser), entries are
+ *   emitted as additional codings in the export; they are additive, never required.
  */
 
 /** Local CodeSystem canonical URL (engine-owned codes). */
@@ -41,7 +44,6 @@ export const LOCAL_VALUE_MAPS: Record<string, Record<string, CodeEntry>> = {
     "tooth-base": { code: "tooth-base", display: "Present tooth" },
     "milktooth": { code: "milktooth", display: "Primary (deciduous) tooth" },
     "implant": { code: "implant", display: "Dental implant" },
-    "tooth-crownprep": { code: "tooth-crownprep", display: "Crown preparation" },
     "tooth-under-gum": { code: "tooth-under-gum", display: "Tooth under gum" },
     "no-tooth-after-extraction": { code: "no-tooth-after-extraction", display: "Missing after extraction" },
   },
@@ -78,6 +80,7 @@ export const LOCAL_VALUE_MAPS: Record<string, Record<string, CodeEntry>> = {
   crownMaterial: {
     "natural": { code: "natural", display: "Natural crown" },
     "broken": { code: "broken", display: "Broken crown" },
+    "crownprep": { code: "crownprep", display: "Crown preparation" },
     "radix": { code: "radix", display: "Root remnant (radix)" },
     "emax": { code: "emax", display: "E.max crown" },
     "zircon": { code: "zircon", display: "Zirconia crown" },
@@ -120,8 +123,10 @@ export const LOCAL_VALUE_MAPS: Record<string, Record<string, CodeEntry>> = {
 
 /**
  * Verified SNOMED CT codes, keyed by "<group>:<value>".
- * Start empty/minimal; entries are added only after verification against the
- * official SNOMED CT browser (see Task 8b). The mapper works with or without
- * entries here — they are purely additive.
+ * CURRENTLY EMPTY — so no SNOMED coding is emitted by the export; the local
+ * system is the only coding produced for clinical states. When entries are
+ * added here (codes verified against the official SNOMED CT browser), they are
+ * emitted as additional codings in the export. The mapper works with or without
+ * entries — they are purely additive.
  */
 export const SNOMED_CODES: Record<string, string> = {};

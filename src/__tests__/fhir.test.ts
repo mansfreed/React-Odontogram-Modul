@@ -4,13 +4,14 @@ import { LOCAL_VALUE_MAPS, LOCAL_SYSTEM, FDI_SYSTEM } from "../fhir/codesystems"
 // Mirror of the engine's VALID_* sets (src/odontogram.ts:2145-2153).
 // Kept here so the test fails loudly if a new enum value is added without a code.
 const EXPECTED = {
-  toothSelection: ["none","tooth-base","milktooth","implant","tooth-crownprep","tooth-under-gum","no-tooth-after-extraction"],
+  toothSelection: ["none","tooth-base","milktooth","implant","tooth-under-gum","no-tooth-after-extraction"],
   endo: ["none","endo-medical-filling","endo-filling","endo-filling-incomplete","endo-glass-pin","endo-metal-pin"],
   fillingMaterial: ["none","amalgam","composite","gic","temporary"],
   bridgeUnit: ["none","removable","zircon","metal","temporary","bar","bar-prosthesis"],
   mobility: ["none","m1","m2","m3"],
-  crownMaterial: ["natural","broken","radix","emax","zircon","metal","temporary","telescope","healing-abutment","locator","locator-prosthesis","bar","bar-prosthesis"],
+  crownMaterial: ["natural","broken","crownprep","radix","emax","zircon","metal","temporary","telescope","healing-abutment","locator","locator-prosthesis","bar","bar-prosthesis"],
   mods: ["inflammation","parodontal","mobility"],
+  periapicalType: ["none","granuloma","cyst","abscess"],
   caries: ["caries-subcrown","caries-buccal","caries-lingual","caries-mesial","caries-distal","caries-occlusal"],
   fillingSurfaces: ["buccal","lingual","mesial","distal","occlusal"],
 } as const;

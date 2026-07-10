@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.1] - 2026-07-10
+
+Documentation accuracy and FHIR value-map consistency.
+
+### Fixed
+- Corrected the HL7 FHIR export claim in every README language variant (including
+  the new pt-BR) and the CHANGELOG: the export emits local + ISO 3950 (permanent
+  dentition) codings — SNOMED CT is not yet emitted (mapping planned). Aligned the
+  `src/fhir/codesystems.ts` comments accordingly.
+
+### Changed
+- FHIR export: added the `crownprep` ("Prepared for crown") crown material to the
+  local value map so it exports with a proper display; removed the obsolete
+  `tooth-crownprep` tooth-selection value (it is now a crown material, not a base type).
+- Extended the FHIR value-map test to cover `periapicalType`.
+- `package.json` — version 1.11.0 → 1.11.1.
+
 ## [1.11.0] - 2026-07-10
 
 Brazilian Portuguese (pt-BR) UI language.
@@ -92,7 +109,7 @@ Cross-surface selection UI, mixed fillings, and PNG/JPG export.
 HL7 FHIR R4 export, MIT license, and English default language.
 
 ### Added
-- **HL7 FHIR R4 export** — a collection Bundle of per-tooth Observations, ISO 3950 tooth coding, and hybrid local + SNOMED codings.
+- **HL7 FHIR R4 export** — a collection Bundle of per-tooth Observations, ISO 3950 tooth coding for permanent dentition, and a local code system (SNOMED CT mapping planned).
 - MIT LICENSE file (resolves #7).
 
 ### Changed
@@ -315,6 +332,8 @@ First stable release of the React Odontogram Module — an interactive, SVG-base
 - Odontogram init lifecycle and import handling
 - Topbar toggle buttons duplicate click bindings
 
+[1.11.1]: https://github.com/ZoliQua/React-Odontogram-Modul/compare/v1.11.0...v1.11.1
+[1.11.0]: https://github.com/ZoliQua/React-Odontogram-Modul/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/ZoliQua/React-Odontogram-Modul/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/ZoliQua/React-Odontogram-Modul/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/ZoliQua/React-Odontogram-Modul/compare/v1.7.0...v1.8.0
